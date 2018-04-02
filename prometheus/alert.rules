@@ -13,8 +13,8 @@ groups:
 - name: host
   rules:
   - alert: high_cpu_load
-    expr: node_load1 > 1.5
-    for: 30s
+    expr: node_load1 > 7
+    for: 180s
     labels:
       severity: warning
     annotations:
@@ -56,17 +56,6 @@ groups:
     annotations:
       summary: "rootfs will in 4 hours"
       description: "The speed of the rootfs is such that it will be fully filled in 4 hours"
-
-- name: containers
-  rules:
-  - alert: jenkins_down
-    expr: absent(container_memory_usage_bytes{name="jenkins"})
-    for: 30s
-    labels:
-      severity: critical
-    annotations:
-      summary: "Jenkins down"
-      description: "Jenkins container is down for more than 30 seconds."
 
   - alert: jenkins_high_cpu
     expr: sum(rate(container_cpu_usage_seconds_total{name="jenkins"}[1m])) / count(node_cpu{mode="system"}) * 100 > 10

@@ -5,5 +5,5 @@ datasources:
   type: prometheus
   access: proxy
   orgId: 1
-  url: http://prom5s_www_1:9090
+  url: http://www:9090
   basicAuth: false

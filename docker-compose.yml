@@ -6,6 +6,7 @@ networks:
       name: ${DCAPE_NET}
 
 services:
+
 # prometheus
   www:
     image: ${IMAGE_PROM5S}:${IMAGE_VER_PROM5S}
@@ -13,8 +14,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
+      - ../../data/prometheus_data:/prometheus:rw
       - ./prometheus/:/etc/prometheus/
-      - ../../data/prometheus_data:/prometheus
     depends_on:
       - node
       - cadvisor
