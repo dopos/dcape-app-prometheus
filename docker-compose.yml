@@ -1,0 +1,176 @@
+version: '2.1'
+
+networks:
+  lan:
+    external:
+      name: ${DCAPE_NET}
+
+services:
+# prometheus
+  www:
+    image: ${IMAGE_PROM5S}:${IMAGE_VER_PROM5S}
+#    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - ../../data/prometheus_data:/prometheus
+    depends_on:
+      - node
+      - cadvisor
+      - pg_exp
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    expose:
+      - 9090
+    networks:
+      - lan
+    labels:
+#      org.label-schema.group: "monitoring"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:${APP_SITE}"
+      - "traefik.frontend.auth.basic=${AUTH_PROMETHEUS_ADMIN}"
+
+  alert:
+    image: ${IMAGE_ALERT_MANAGER}:${IMAGE_VER_ALERT_MANAGER}
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    depends_on:
+      - www
+    environment:
+      - EMAIL_ADRESS_FOR_SEND_ALERT=${EMAIL_ADRESS_FOR_SEND_ALERT}
+      - HOSTNAME_SMTP_SERVER=${HOSTNAME_SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT}
+      - USERNAME_SMTP_ALERT=${USERNAME_SMTP_ALERT}
+      - PASSWORD_SMTP_ALERT=${PASSWORD_SMTP_ALERT}
+      - SMTP_AUTH_IDENTITY=${SMTP_AUTH_IDENTITY}
+    restart: unless-stopped
+    expose:
+      - 9093
+    networks:
+      - lan
+#    labels:
+#      org.label-schema.group: "monitoring"
+
+  node:
+    image: ${IMAGE_NODE_EXPORT}:${IMAGE_VER_NODE_EXPORT}
+#    container_name: nodeexporter
+    user: root
+    privileged: true
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+#      - /:/rootfs:ro  disable until bugfix the /dev/shm busy
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--no-collector.bcache'
+      - '--no-collector.entropy'
+      - '--no-collector.hwmon'
+      - '--no-collector.sockstat'
+      - '--no-collector.vmstat'
+      - '--no-collector.wifi'
+#      - '--no-collector.filesystem'
+    restart: unless-stopped
+    expose:
+      - 9100
+    networks:
+      - lan
+#    labels:
+#      org.label-schema.group: "monitoring"
+
+  cadvisor:
+    image: ${IMAGE_CADVISOR}:${IMAGE_VER_CADVISOR}
+#    container_name: cadvisor
+    volumes:
+#      - /:/rootfs:ro disable until bugfix the /dev/shm busy
+      - /dev/kmsg:/dev/kmsg:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+#      - /var/lib/docker/:/var/lib/docker:ro
+#      - /dev/disk/:/dev/disk:ro
+      - /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
+    command:
+#      - '--v=0'
+      - '--docker_only=true'
+#      - '--storage_duration=1m0s'
+#      - '--allow_dynamic_housekeeping=false'
+#      - '--docker_env_metadata_whitelist="container_fs_usage_bytes"'
+#      - '--global_housekeeping_interval=40s'
+      - '--housekeeping_interval=5s'
+#      - '--max_housekeeping_interval=40s'
+      - '--disable_metrics=disk'
+      - '--max_procs=2'
+    restart: unless-stopped
+    expose:
+      - 8080
+    networks:
+      - lan
+#    labels:
+#      org.label-schema.group: "monitoring"
+
+  pg_exp:
+    image: ${IMAGE_PGSQL_EXPORT}:${IMAGE_VER_PGSQL_EXPORT}
+#    container_name: postgres_exporter
+    volumes:
+      - ./postgres_exporter/queries.yaml:/etc/queries.yaml
+    restart: unless-stopped
+    expose:
+      - 5432
+      - 9187
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${DB_USER}:${DB_PASS}@${DCAPE_DB}:5432/?sslmode=disable
+    command:
+      - '--extend.query-path=/etc/queries.yaml'
+    networks:
+      - lan
+#    labels:
+#      org.label-schema.group: "monitoring"
+
+  grafana:
+    image: ${IMAGE_GRAFANA}:${IMAGE_VER_GRAFANA}
+#    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../data/grafana_data:/var/lib/grafana
+      - ./grafana/dash_list.yaml:/etc/grafana/provisioning/dashboards/dash_list.yaml
+      - ./grafana/datasources/datasources_list.yaml:/etc/grafana/provisioning/datasources/datasources_list.yaml
+      - ./grafana/dashboards:/etc/grafana/dashboards
+      - ./grafana/setup.sh:/setup.sh
+    depends_on:
+      - www
+    entrypoint: /setup.sh
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GRAFANA_USER=${GRAFANA_USER}
+      - GRAFANA_USER_PASSWORD=${GRAFANA_USER_PASSWORD}
+      - GRAFANA_USER_EMAIL=${GRAFANA_USER_EMAIL}
+#      - GF_USERS_ALLOW_SIGN_UP=true
+      - GF_USERS_DEFAULT_THEME=light
+#      - GF_DATABASE_TYPE=postgres
+#      - GF_DATABASE_HOST=${DCAPE_DB}:5432
+#      - GF_DATABASE_NAME=${DB_NAME_GRAFANA}
+#      - GF_DATABASE_USER=${DB_USER_GRAFANA}
+#      - GF_DATABASE_PASSWORD=${DB_PASS_GRAFANA}
+#      - GF_DATABASE_SSL_MODE=disable
+    restart: unless-stopped
+    expose:
+      - 3000
+    networks:
+      - lan
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:${DASH_SITE}"
+#      org.label-schema.group: "monitoring"
