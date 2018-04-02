@@ -5,12 +5,7 @@ networks:
     external:
       name: ${DCAPE_NET}
 
-volumes:
-    prometheus_data: {}
-    grafana_data: {}
-
 services:
-
 # prometheus
   www:
     image: ${IMAGE_PROM5S}:${IMAGE_VER_PROM5S}
@@ -19,7 +14,7 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/:/etc/prometheus/
-      - prometheus_data:/prometheus
+      - ../../prometheus_data:/prometheus
     depends_on:
       - node
       - cadvisor
@@ -148,7 +143,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - grafana_data:/var/lib/grafana
+      - ../../grafana_data:/var/lib/grafana
       - ./grafana/dash_list.yaml:/etc/grafana/provisioning/dashboards/dash_list.yaml
       - ./grafana/datasources/datasources_list.yaml:/etc/grafana/provisioning/datasources/datasources_list.yaml
       - ./grafana/dashboards:/etc/grafana/dashboards
