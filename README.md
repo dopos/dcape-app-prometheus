@@ -1,26 +1,20 @@
-# dcape-app-prom5s
-================================================================================
+# dcape-app-prometheus
 
 [![GitHub Release][1]][2] [![GitHub code size in bytes][3]]() [![GitHub license][4]][5]
 
-[1]: https://img.shields.io/github/release/dopos/dcape-app-redmine.svg
-[2]: https://github.com/dopos/dcape-app-redmine/releases
-[3]: https://img.shields.io/github/languages/code-size/dopos/dcape-app-redmine.svg
-[4]: https://img.shields.io/github/license/dopos/dcape-app-redmine.svg
+[1]: https://img.shields.io/github/release/dopos/dcape-app-prometheus.svg
+[2]: https://github.com/dopos/dcape-app-prometheus/releases
+[3]: https://img.shields.io/github/languages/code-size/dopos/dcape-app-prometheus.svg
+[4]: https://img.shields.io/github/license/dopos/dcape-app-prometheus.svg
 [5]: LICENSE
 
-[Prometheus](http://prometheus.io) application set for monitoring and deploy of [dcape](https://github.com/dopos/dcape).
+[prometheus](https://prometheus.io/) application package for [dcape](https://github.com/dopos/dcape).
 
+## Docker image used
 
-
-## **Prom5s** consist of the components and use official images (containers):
-
-* Prometheus (metrics database)
-* AlertManager (alerts management)
-* Grafana (visualize metrics)
-* NodeExporter (host metrics exporter)
-* cAdvisor (containers metrics exporter)
-* Postgres_exporter (container metrics exporter)
+* [prom/prometheus](https://hub.docker.com/r/prom/prometheus)
+* [CrunchyData/postgresql-prometheus-adapter](https://github.com/CrunchyData/postgresql-prometheus-adapter)
+* [prometheus-docker-labels-discovery](https://hub.docker.com/r/sqooba/prometheus-docker-labels-discovery)
 
 ## Requirements
 
@@ -29,16 +23,13 @@
 * [dcape](https://github.com/dopos/dcape)
 * Git service ([github](https://github.com), [gitea](https://gitea.io) or [gogs](https://gogs.io))
 
-## For deploy this application package om dcape
+## Usage
 
 * Fork this repo in your Git service
 * Setup deploy hook
 * Run "Test delivery" (config sample will be created in dcape)
 * Edit and save config (enable deploy etc)
 * Run "Test delivery" again (app will be installed and started on webhook host)
-* Reset admin password for Grafana
-
-About usage **prom5s** see [instruction](https://github.com/abhinand-tw/dcape-app-prom5s/blob/master/usage_prom5s.md)
 
 See also: [Deploy setup](https://github.com/dopos/dcape/blob/master/DEPLOY.md) (in Russian)
 
@@ -46,4 +37,4 @@ See also: [Deploy setup](https://github.com/dopos/dcape/blob/master/DEPLOY.md) (
 
 The MIT License (MIT), see [LICENSE](LICENSE).
 
-2018 Maxim Danilin <zan@whiteants.net>
+Copyright (c) 2023 Alexey Kovrizhkin <lekovr+dopos@gmail.com>
