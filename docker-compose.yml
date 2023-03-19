@@ -18,7 +18,7 @@ services:
 
   storage:
     # https://github.com/CrunchyData/postgresql-prometheus-adapter
-    image: postgresql-prometheus-adapter:latest
+    image: ghcr.io/lekovr/postgresql-prometheus-adapter:v1.2.0
     restart: always
     environment:
       - DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@db/${PGDATABASE}?sslmode=disable
