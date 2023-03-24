@@ -20,6 +20,7 @@ services:
     # https://github.com/CrunchyData/postgresql-prometheus-adapter
     image: ghcr.io/lekovr/postgresql-prometheus-adapter:v1.2.0
     restart: always
+    command: --pg-threads 3
     environment:
       - DATABASE_URL=postgres://${PGUSER}:${PGPASSWORD}@db/${PGDATABASE}?sslmode=disable
     volumes:
@@ -49,3 +50,4 @@ services:
     environment:
       - PROMETHEUS_CONFIG_FILE_PATH=/config/from-docker-labels.json
       - DOCKER_NETWORK_NAME=${DCAPE_NET}
+      - PROMETHEUS_ADD_CONTAINER_METADATA=true
